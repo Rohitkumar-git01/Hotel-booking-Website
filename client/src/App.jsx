@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useContext } from 'react'
 import Navbar from './components/Navbar'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import Home from './pages/Home';
@@ -11,9 +11,10 @@ import Layout from './pages/hotelOwner/Layout';
 import Dashboard from './pages/hotelOwner/Dashboard';
 import AddRoom from './pages/hotelOwner/AddRoom';
 import ListRoom from './pages/hotelOwner/ListRoom';
+import { AppContext } from './context/AppContext';
 
 const App = () => {
-  const [showHotelReg] = useState(false);
+  const { showHotelReg } = useContext(AppContext);
 
   const isOwnerPath = useLocation().pathname.includes("owner");
 

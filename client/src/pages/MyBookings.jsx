@@ -1,85 +1,155 @@
-import React, { useState } from 'react'
-import Title from '../components/Title'
-import { userBookingsDummyData, assets } from '../assets/assets'
+import React, { useEffect, useContext } from "react";
+import Title from "../components/Title";
+import { assets } from "../assets/assets";
+import { AppContext } from "../context/AppContext";
 
 const MyBookings = () => {
+  const { myBookings, fetchUserBookings, payBooking, cancelBooking } = useContext(AppContext);
 
-    const [bookings] = useState(userBookingsDummyData)
+  useEffect(() => {
+    fetchUserBookings();
+  }, []);
+
+  const handlePay = async (bookingId) => {
+    const res = await payBooking(bookingId);
+    if (res.success) {
+      alert("Payment successful!");
+    } else {
+      alert(res.message || "Failed to make payment");
+    }
+  };
+
+  const handleCancel = async (bookingId) => {
+    if (window.confirm("Are you sure you want to cancel this booking?")) {
+      const res = await cancelBooking(bookingId);
+      if (res.success) {
+        alert("Booking cancelled successfully!");
+      } else {
+        alert(res.message || "Failed to cancel booking");
+      }
+    }
+  };
 
   return (
-    <div className='py-28 md:pb-35 md:pt-32 px-4 md:px-16 lg:px-24 xl:px-32'>
+    <div className="py-28 md:pb-35 md:pt-32 px-4 md:px-16 lg:px-24 xl:px-32">
+      <Title
+        title="My Bookings"
+        subTitle="View and manage your bookings, plan your trips with just a few clicks. Visit our palace to make your dream vacation a reality. We provide the best and most affordable accommodation options for your perfect getaway. Enjoy your stay!"
+        align="left"
+      />
 
-        <Title title='My Bookings' subTitle='View and manage your bookings
-        plan your trips with just a few clicks.visit our palace to make your dream
-        vacation a reality.We provide best and most affordable accommodation options for your perfect getaway.
-        Enjoy your stay!' align='left' />
-
-        <div className='max-w-6xl mt-8 w-full text-gray-800'>
-
-            <div className='hidden md:grid md:grid-cols-[3fr_2fr_1fr] w-full border-b
-            border-gray-300 font-medium text-base py-3'>
-                <div className="w-1/3">Hotels</div>
-                <div className="w-1/3">Date & Time</div>
-                <div className="w-1/3">Payment</div>
-            </div>
-
-            {bookings.map((booking) => (
-                <div key={booking._id} className='grid grid-cols-1 md:grid-cols-[3fr_2fr_1fr] w-full border-b
-                border-gray-300 py-6 first:border-t'>
-                    {/* --------Hotel Details------- */}
-                    <div className='flex flex-col md:flex-row'>
-                        <img src={booking.room.images[0]} alt="hotel-img"
-                        className='min-md: w-44 rounded shadow object-cover' />
-                        <div className='flex flex-col gap-1.5 max-md: mt-3 min-md: ml-4'>
-                            <p className='font-playfair text-2xl'>{booking.hotel.name}
-                            <span className='font-inter text-sm'> ({booking.room.roomType})</span>
-                            </p>
-                            <div className='flex items-center gap-1 text-sm text-gray-500 '>
-                              <img src={assets.locationIcon} alt="location-icon"/>
-                              <span>{booking.hotel.address}</span>
-                            </div>
-                            <div className='flex items-center gap-1 text-sm text-gray-500 '>
-                              <img src={assets.guestsIcon} alt="guests-icon"/>
-                              <span>Guests: {booking.guests}</span>
-                            </div>
-                            <p className='text-base'>Total:${booking.totalPrice}</p>
-                        </div>
-                    </div>
-                    {/* -------Date & Time---------- */}
-                    <div>
-                        <p>Check-In</p>
-                        <p className="text-gray-500 text-sm">
-                            {new Date(booking.checkInDate).toDateString()}
-                        </p>
-                    </div>
-                    <div>
-                        <p>Check-Out</p>
-                        <p className="text-gray-500 text-sm">
-                            {new Date(booking.checkOutDate).toDateString()}
-                        </p>
-                    </div>
-                    {/* -------Payment Status------- */}
-                    <div className='flex flex-col items-start justify-center pt-3'>
-                        <div className='flex items-center gap-2'>
-                           <div className={`h-3 w-3 rounded-full ${booking.isPaid ?
-                            "bg-green-500" : "bg-red-500"}`}></div>
-                            <p className={`text-sm ${booking.isPaid ? "text-green-500" :
-                                "text-red-500"}`}>
-                                {booking.isPaid ? "Paid" : "unpaid"}
-                            </p>
-                        </div>
-                        {!booking.isPaid &&(
-                            <button className='px-4 py-1.5 mt-4 text-xs border border-gray-400
-                            rounded-full hover:bg-gray-50 transition-all cursor-pointer'>
-                                Pay Now
-                            </button>
-                        )}
-                    </div>  
-                </div>   
-            ))}
+      <div className="max-w-6xl mt-8 w-full text-gray-800">
+        <div className="hidden md:grid md:grid-cols-[3fr_2fr_1fr] w-full border-b border-gray-300 font-medium text-base py-3">
+          <div className="w-1/3">Hotels</div>
+          <div className="w-1/3">Date & Time</div>
+          <div className="w-1/3">Payment / Actions</div>
         </div>
-    </div>
-  )
-}
 
-export default MyBookings
+        {myBookings.length === 0 ? (
+          <div className="py-12 text-center text-gray-500">You don't have any bookings yet.</div>
+        ) : (
+          myBookings.map((booking) => (
+            <div
+              key={booking._id}
+              className="grid grid-cols-1 md:grid-cols-[3fr_2fr_1fr] w-full border-b border-gray-300 py-6 first:border-t"
+            >
+              {/* --------Hotel Details------- */}
+              <div className="flex flex-col md:flex-row">
+                <img
+                  src={booking.room?.images?.[0] || assets.uploadArea}
+                  alt="hotel-img"
+                  className="w-44 rounded shadow object-cover h-28"
+                />
+                <div className="flex flex-col gap-1.5 max-md:mt-3 md:ml-4">
+                  <p className="font-playfair text-2xl">
+                    {booking.hotel?.name || "Premium Suites"}
+                    <span className="font-inter text-sm">
+                      {" "}
+                      ({booking.room?.roomType || "Room"})
+                    </span>
+                  </p>
+                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                    <img src={assets.locationIcon} alt="location-icon" />
+                    <span>{booking.hotel?.address || "Address unavailable"}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                    <img src={assets.guestsIcon} alt="guests-icon" />
+                    <span>Guests: {booking.guests}</span>
+                  </div>
+                  <p className="text-base font-semibold">Total: ${booking.totalPrice}</p>
+                </div>
+              </div>
+
+              {/* -------Date & Time---------- */}
+              <div className="flex flex-col gap-2 justify-center max-md:my-4">
+                <div>
+                  <p className="font-medium text-sm text-gray-400">Check-In</p>
+                  <p className="text-gray-700 text-sm font-semibold">
+                    {new Date(booking.checkInDate).toDateString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium text-sm text-gray-400">Check-Out</p>
+                  <p className="text-gray-700 text-sm font-semibold">
+                    {new Date(booking.checkOutDate).toDateString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* -------Payment Status / Actions------- */}
+              <div className="flex flex-col items-start justify-center gap-2">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`h-3 w-3 rounded-full ${
+                      booking.status === "cancelled"
+                        ? "bg-gray-400"
+                        : booking.isPaid
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
+                  <p
+                    className={`text-sm font-medium ${
+                      booking.status === "cancelled"
+                        ? "text-gray-400"
+                        : booking.isPaid
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
+                  >
+                    {booking.status === "cancelled"
+                      ? "Cancelled"
+                      : booking.isPaid
+                      ? "Paid"
+                      : "Unpaid"}
+                  </p>
+                </div>
+
+                {booking.status !== "cancelled" && (
+                  <div className="flex flex-col gap-2 w-full">
+                    {!booking.isPaid && (
+                      <button
+                        onClick={() => handlePay(booking._id)}
+                        className="px-4 py-1.5 text-xs border border-green-500 text-green-600 rounded-full hover:bg-green-50 transition-all cursor-pointer w-32"
+                      >
+                        Pay Now
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleCancel(booking._id)}
+                      className="px-4 py-1.5 text-xs border border-red-400 text-red-500 rounded-full hover:bg-red-50 transition-all cursor-pointer w-32"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MyBookings;
