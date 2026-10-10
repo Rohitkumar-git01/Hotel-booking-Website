@@ -1,43 +1,59 @@
-import React, { useContext } from 'react'
+import React, { useContext, lazy, Suspense } from 'react'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import { Route, Routes, useLocation } from 'react-router-dom'
-import Home from './pages/Home';
-import Footer from './components/Footer';
-import AllRooms from './pages/AllRooms';
-import RoomDetails from './pages/RoomDetails';
-import MyBookings from './pages/MyBookings';
-import HotelReg from './components/HotelReg';
-import Layout from './pages/hotelOwner/Layout';
-import Dashboard from './pages/hotelOwner/Dashboard';
-import AddRoom from './pages/hotelOwner/AddRoom';
-import ListRoom from './pages/hotelOwner/ListRoom';
-import { AppContext } from './context/AppContext';
+import { AppContext } from './context/AppContext'
+import LoadingSpinner from './components/LoadingSpinner'
+
+// Route-level Lazy Loading Code Splitting
+const Home = lazy(() => import('./pages/Home'));
+const AllRooms = lazy(() => import('./pages/AllRooms'));
+const RoomDetails = lazy(() => import('./pages/RoomDetails'));
+const MyBookings = lazy(() => import('./pages/MyBookings'));
+const Experience = lazy(() => import('./pages/Experience'));
+const About = lazy(() => import('./pages/About'));
+const HotelReg = lazy(() => import('./components/HotelReg'));
+const AIChatbot = lazy(() => import('./components/AIChatbot'));
+const Layout = lazy(() => import('./pages/hotelOwner/Layout'));
+const Dashboard = lazy(() => import('./pages/hotelOwner/Dashboard'));
+const AddRoom = lazy(() => import('./pages/hotelOwner/AddRoom'));
+const ListRoom = lazy(() => import('./pages/hotelOwner/ListRoom'));
 
 const App = () => {
   const { showHotelReg } = useContext(AppContext);
-
   const isOwnerPath = useLocation().pathname.includes("owner");
 
   return (
     <div>
       {!isOwnerPath && <Navbar />}
-      {showHotelReg && <HotelReg/>}
+
+      <Suspense fallback={null}>
+        {showHotelReg && <HotelReg />}
+      </Suspense>
+
       <div className='min-h-[70vh]'>
-        <Routes>
-          <Route path='/' element={<Home/>}/>
-          <Route path='/rooms' element={<AllRooms/>}/>
-          <Route path='/rooms/:id' element={<RoomDetails/>}/>
-          <Route path='/my-bookings' element={<MyBookings/>}/>
-          <Route path='/owner' element={<Layout/>}>
-               <Route index element={<Dashboard/>}/>
-               <Route path="add-room" element={<AddRoom/>}/>
-               <Route path="list-room" element={<ListRoom/>}/>
-
-          </Route>
-        </Routes>
-
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            <Route path='/' element={<Home />} />
+            <Route path='/rooms' element={<AllRooms />} />
+            <Route path='/rooms/:id' element={<RoomDetails />} />
+            <Route path='/my-bookings' element={<MyBookings />} />
+            <Route path='/experience' element={<Experience />} />
+            <Route path='/about' element={<About />} />
+            <Route path='/owner' element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="add-room" element={<AddRoom />} />
+              <Route path="list-room" element={<ListRoom />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </div>
+
       {!isOwnerPath && <Footer />}
+
+      <Suspense fallback={null}>
+        <AIChatbot />
+      </Suspense>
     </div>
   )
 }

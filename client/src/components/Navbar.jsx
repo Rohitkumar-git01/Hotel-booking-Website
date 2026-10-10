@@ -5,11 +5,8 @@ import { useClerk, useUser,UserButton } from "@clerk/clerk-react";
 import { AppContext } from "../context/AppContext";
 
 const BookIcon = ()=>(
-    <svg className="w-4 h-4 text-gray-700" aria-hidden="true" xmlns="http://www.w3.
-    org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" >
-        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"
-        strokeWidth="2" d="M5 19V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v13H7a2 2 0 0 0-22Zm0
-        0a2 2 0 0 0 2 2h12M9 3v14m7 0v4"/>
+    <svg className="w-4 h-4 text-gray-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" >
+        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 19V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v13H7a2 2 0 0 0-2 2h12M9 3v14m7 0v4"/>
     </svg>
 )
 
@@ -17,8 +14,8 @@ const Navbar = () => {
     const navLinks = [
         { name: 'Home', path: '/' },
         { name: 'Hotels', path: '/rooms' },
-        { name: 'Experience', path: '/' },
-        { name: 'About', path: '/' },
+        { name: 'Experience', path: '/experience' },
+        { name: 'About', path: '/about' },
     ];
 
 
@@ -67,11 +64,10 @@ const Navbar = () => {
                 {/* Desktop Nav */}
                 <div className="hidden md:flex items-center gap-4 lg:gap-8">
                     {navLinks.map((link, i) => (
-                        <Link key={i} to={link.path} className={`group flex flex-col gap-0.5 ${isScrolled ? "text-gray-700" : "text-white"}`}>
+                        <Link key={i} to={link.path} onClick={() => window.scrollTo(0, 0)} className={`group flex flex-col gap-0.5 ${isScrolled ? "text-gray-700" : "text-white"}`}>
                             {link.name}
                             <div className={`${isScrolled ? "bg-gray-700" : "bg-white"} h-0.5 w-0 group-hover:w-full transition-all duration-300`} />
                         </Link>
-                        
                     ))}
                     <button className={`border px-4 py-1 text-sm font-light 
                         rounded-full cursor-pointer ${isScrolled ? 'text-black' :
@@ -84,8 +80,7 @@ const Navbar = () => {
 
                 {/* Desktop Right */}
                 <div className="hidden md:flex items-center gap-4">
-                    <img src={assets.searchIcon} alt="search" className={`$
-                    {isScrolled && 'invert'} h-7 transition-all duration-500`}/>
+                    <img src={assets.searchIcon} alt="search" className={`${isScrolled ? 'invert' : ''} h-7 transition-all duration-500`}/>
                     
 
                 {user ?
@@ -130,7 +125,7 @@ const Navbar = () => {
                     </button>
 
                     {navLinks.map((link, i) => (
-                        <Link key={i} to={link.path} onClick={() => setIsMenuOpen(false)}>
+                        <Link key={i} to={link.path} onClick={() => { setIsMenuOpen(false); window.scrollTo(0, 0); }}>
                             {link.name}
                         </Link>
                     ))}

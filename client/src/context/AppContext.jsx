@@ -1,9 +1,10 @@
 import React, { createContext, useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 
-export const AppContext = createContext();
+// Note: keep this file exporting the Provider component only to preserve fast refresh.
+const AppContext = createContext();
 
-export const AppContextProvider = ({ children }) => {
+const AppContextProvider = ({ children }) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
   const { user } = useUser();
 
@@ -219,10 +220,12 @@ export const AppContextProvider = ({ children }) => {
   };
 
   // Pay Booking
-  const payBooking = async (bookingId) => {
+  const payBooking = async (bookingId, paymentMethod) => {
     try {
       const data = await fetchWithAuth(`/api/bookings/pay/${bookingId}`, {
         method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentMethod }),
       });
       if (data.success) {
         await fetchUserBookings();
@@ -295,3 +298,6 @@ export const AppContextProvider = ({ children }) => {
     </AppContext.Provider>
   );
 };
+
+export { AppContext, AppContextProvider };
+export default AppContextProvider;

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { assets, facilityIcons, roomCommonData } from "../assets/assets";
 import StarRating from "../components/StarRating";
 import { AppContext } from "../context/AppContext";
+import PaymentModal from "../components/PaymentModal";
 
 const RoomDetails = () => {
   const { id } = useParams();
@@ -31,24 +32,39 @@ const RoomDetails = () => {
     loadRoom();
   }, [id]);
 
-  const handleBookSubmit = async (e) => {
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Calculate nights & total price
+  const calculateTotal = () => {
+    if (!checkInDate || !checkOutDate || !room) return 0;
+    const start = new Date(checkInDate);
+    const end = new Date(checkOutDate);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+    return diffDays * room.pricePerNight;
+  };
+
+  const handleBookSubmit = (e) => {
     e.preventDefault();
+    if (!checkInDate || !checkOutDate) {
+      alert("Please select valid Check-In and Check-Out dates");
+      return;
+    }
+    setShowPaymentModal(true);
+  };
 
-    const payWithStripe = window.confirm(
-      "Pay with Stripe now? (Click 'OK' for Stripe/Simulate Paid, click 'Cancel' to choose 'Pay At Hotel' / unpaid)"
-    );
-
+  const handleConfirmPayment = async (paymentMethod, txnId) => {
     const bookingData = {
       roomId: id,
       checkInDate,
       checkOutDate,
       guests,
-      paymentMethod: payWithStripe ? "Stripe" : "Pay At Hotel",
+      paymentMethod,
+      transactionId: txnId,
     };
 
     const res = await createBooking(bookingData);
     if (res.success) {
-      alert("Booking created successfully!");
       navigate("/my-bookings");
     } else {
       alert(res.message || "Failed to create booking.");
@@ -114,9 +130,10 @@ const RoomDetails = () => {
                 key={index}
                 src={image}
                 alt="Room Image"
-                className={`w-full rounded-xl shadow-lg object-cover cursor-pointer max-h-44 ${
-                  mainImage === image && "outline-3 outline-orange-500"
-                }`}
+                loading="lazy"
+                decoding="async"
+                className={`w-full rounded-xl shadow-lg object-cover cursor-pointer max-h-44 ${mainImage === image && "outline-3 outline-orange-500"
+                  }`}
               />
             ))}
         </div>
@@ -233,6 +250,8 @@ const RoomDetails = () => {
           <img
             src={room.hotel?.owner?.image || assets.userIcon}
             alt="Host"
+            loading="lazy"
+            decoding="async"
             className="h-14 w-14 md:h-18 md:w-18 rounded-full object-cover"
           />
           <div>
@@ -247,6 +266,20 @@ const RoomDetails = () => {
           Contact Now
         </button>
       </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        bookingDetails={{
+          hotelName: room.hotel?.name,
+          roomType: room.roomType,
+          checkInDate,
+          checkOutDate,
+          totalPrice: calculateTotal(),
+        }}
+        onConfirmPayment={handleConfirmPayment}
+      />
     </div>
   );
 };

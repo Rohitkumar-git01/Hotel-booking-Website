@@ -4,20 +4,20 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import StarRating from "../components/StarRating";
 import { AppContext } from "../context/AppContext";
 
-const Checkbox = ({ label, selected = false, onChange = () => {} }) => {
+const Checkbox = ({ label, value, selected = false, onChange = () => { } }) => {
   return (
     <label className="flex gap-3 items-center cursor-pointer mt-2 text-sm">
       <input
         type="checkbox"
         checked={selected}
-        onChange={(e) => onChange(e.target.checked, label)}
+        onChange={(e) => onChange(e.target.checked, value || label)}
       />
       <span className="font-light select-none">{label}</span>
     </label>
   );
 };
 
-const RadioButton = ({ label, selected = false, onChange = () => {} }) => {
+const RadioButton = ({ label, selected = false, onChange = () => { } }) => {
   return (
     <label className="flex gap-3 items-center cursor-pointer mt-2 text-sm">
       <input
@@ -46,10 +46,10 @@ const AllRooms = () => {
   ];
 
   const priceRanges = [
-    "0 to 100",
+    "0 to 200",
+    "200 to 500",
     "500 to 1000",
-    "1000 to 2000",
-    "2000 and above",
+    "1000 and above",
   ];
 
   const sortOptions = [
@@ -70,12 +70,10 @@ const AllRooms = () => {
   };
 
   const handlePriceRangeChange = (checked, range) => {
-    // strip the "$ " prefix if present
-    const cleanRange = range.replace(/^\$\s*/, "");
     if (checked) {
-      setSelectedPriceRanges((prev) => [...prev, cleanRange]);
+      setSelectedPriceRanges((prev) => [...prev, range]);
     } else {
-      setSelectedPriceRanges((prev) => prev.filter((r) => r !== cleanRange));
+      setSelectedPriceRanges((prev) => prev.filter((r) => r !== range));
     }
   };
 
@@ -179,9 +177,8 @@ const AllRooms = () => {
       {/* Filter Sidebar */}
       <div className="bg-white w-80 border border-gray-300 text-gray-600 max-lg:mb-8 min-lg mt-16 lg:ml-6">
         <div
-          className={`flex items-center justify-between px-5 py-2.5 min-lg border-b border-gray-300 ${
-            openFilters && "border-b"
-          }`}
+          className={`flex items-center justify-between px-5 py-2.5 min-lg border-b border-gray-300 ${openFilters && "border-b"
+            }`}
         >
           <p className="text-base font-medium text-gray-800">FILTERS</p>
           <div className="text-xs cursor-pointer">
@@ -197,9 +194,8 @@ const AllRooms = () => {
           </div>
         </div>
         <div
-          className={`${
-            openFilters ? "h-auto" : "h-0 lg:h-auto"
-          } overflow-hidden transition-all duration-700`}
+          className={`${openFilters ? "h-auto" : "h-0 lg:h-auto"
+            } overflow-hidden transition-all duration-700`}
         >
           <div className="px-5 pt-5">
             <p className="font-medium text-gray-800 pb-2">Popular filters</p>
@@ -218,6 +214,7 @@ const AllRooms = () => {
               <Checkbox
                 key={index}
                 label={`$ ${range}`}
+                value={range}
                 selected={selectedPriceRanges.includes(range)}
                 onChange={handlePriceRangeChange}
               />

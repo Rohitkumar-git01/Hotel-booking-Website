@@ -1,19 +1,22 @@
-import React, { useEffect, useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import Title from "../components/Title";
 import { assets } from "../assets/assets";
 import { AppContext } from "../context/AppContext";
+import PaymentModal from "../components/PaymentModal";
 
 const MyBookings = () => {
   const { myBookings, fetchUserBookings, payBooking, cancelBooking } = useContext(AppContext);
+  const [selectedBookingForPayment, setSelectedBookingForPayment] = useState(null);
 
   useEffect(() => {
     fetchUserBookings();
   }, []);
 
-  const handlePay = async (bookingId) => {
-    const res = await payBooking(bookingId);
+  const handleConfirmPayment = async (paymentMethod) => {
+    if (!selectedBookingForPayment) return;
+    const res = await payBooking(selectedBookingForPayment._id, paymentMethod);
     if (res.success) {
-      alert("Payment successful!");
+      setSelectedBookingForPayment(null);
     } else {
       alert(res.message || "Failed to make payment");
     }
@@ -105,32 +108,39 @@ const MyBookings = () => {
                         ? "bg-gray-400"
                         : booking.isPaid
                         ? "bg-green-500"
-                        : "bg-red-500"
+                        : "bg-amber-500"
                     }`}
                   ></div>
-                  <p
-                    className={`text-sm font-medium ${
-                      booking.status === "cancelled"
-                        ? "text-gray-400"
+                  <div className="flex flex-col">
+                    <p
+                      className={`text-sm font-medium ${
+                        booking.status === "cancelled"
+                          ? "text-gray-400"
+                          : booking.isPaid
+                          ? "text-green-600"
+                          : "text-amber-600"
+                      }`}
+                    >
+                      {booking.status === "cancelled"
+                        ? "Cancelled"
                         : booking.isPaid
-                        ? "text-green-500"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {booking.status === "cancelled"
-                      ? "Cancelled"
-                      : booking.isPaid
-                      ? "Paid"
-                      : "Unpaid"}
-                  </p>
+                        ? "Paid"
+                        : "Unpaid"}
+                    </p>
+                    {booking.paymentMethod && (
+                      <span className="text-[11px] text-gray-500 font-medium">
+                        Via {booking.paymentMethod}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {booking.status !== "cancelled" && (
-                  <div className="flex flex-col gap-2 w-full">
+                  <div className="flex flex-col gap-2 w-full mt-1">
                     {!booking.isPaid && (
                       <button
-                        onClick={() => handlePay(booking._id)}
-                        className="px-4 py-1.5 text-xs border border-green-500 text-green-600 rounded-full hover:bg-green-50 transition-all cursor-pointer w-32"
+                        onClick={() => setSelectedBookingForPayment(booking)}
+                        className="px-4 py-1.5 text-xs font-semibold bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-full hover:shadow transition-all cursor-pointer w-32"
                       >
                         Pay Now
                       </button>
@@ -148,6 +158,22 @@ const MyBookings = () => {
           ))
         )}
       </div>
+
+      {/* Payment Modal */}
+      {selectedBookingForPayment && (
+        <PaymentModal
+          isOpen={!!selectedBookingForPayment}
+          onClose={() => setSelectedBookingForPayment(null)}
+          bookingDetails={{
+            hotelName: selectedBookingForPayment.hotel?.name,
+            roomType: selectedBookingForPayment.room?.roomType,
+            checkInDate: new Date(selectedBookingForPayment.checkInDate).toLocaleDateString(),
+            checkOutDate: new Date(selectedBookingForPayment.checkOutDate).toLocaleDateString(),
+            totalPrice: selectedBookingForPayment.totalPrice,
+          }}
+          onConfirmPayment={handleConfirmPayment}
+        />
+      )}
     </div>
   );
 };
