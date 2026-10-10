@@ -6,6 +6,7 @@ import userRouter from "./routes/userRoutes.js";
 import hotelRouter from "./routes/hotelRoutes.js";
 import roomRouter from "./routes/roomRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
+import chatbotRouter from "./routes/chatbotRoutes.js";
 import { clerkWebhooks } from "./controllers/clerkWebhooks.js";
 
 const app = express();
@@ -18,11 +19,22 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Ensure DB connection in serverless / cold start environments
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 // API Routes
 app.use("/api/users", userRouter);
 app.use("/api/hotels", hotelRouter);
 app.use("/api/rooms", roomRouter);
 app.use("/api/bookings", bookingRouter);
+app.use("/api/chatbot", chatbotRouter);
 
 // Clerk Webhooks Endpoint
 app.post("/api/webhooks/clerk", clerkWebhooks);
@@ -34,6 +46,10 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+export default app;

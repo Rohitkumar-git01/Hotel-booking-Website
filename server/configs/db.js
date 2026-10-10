@@ -106,16 +106,41 @@ const seedDB = async () => {
   }
 };
 
+let isSeeded = false;
+let isListenersAttached = false;
+
 const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    return;
+  }
+
   try {
-    mongoose.connection.on("connected", () => {
-      console.log("Database Connected");
-      seedDB();
+    if (!isListenersAttached) {
+      isListenersAttached = true;
+      mongoose.connection.on("connected", () => {
+        console.log(`Database Connected successfully to: ${mongoose.connection.name}`);
+        if (!isSeeded) {
+          isSeeded = true;
+          seedDB();
+        }
+      });
+
+      mongoose.connection.on("error", (err) => {
+        console.error("Database connection error:", err.message);
+      });
+
+      mongoose.connection.on("disconnected", () => {
+        console.warn("Database disconnected");
+      });
+    }
+
+    const uri = process.env.MONGODB_URI?.trim() || "mongodb://127.0.0.1:27017/hotel-booking";
+
+    await mongoose.connect(uri, {
+      dbName: "hotel-booking",
     });
-    await mongoose.connect(`${process.env.MONGODB_URI}/hotel-booking`);
   } catch (error) {
-    console.error("Database connection failed:", error);
-    process.exit(1);
+    console.error("Database connection failed:", error.message);
   }
 };
 

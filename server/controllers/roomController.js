@@ -86,13 +86,12 @@ export const getRooms = async (req, res) => {
       query.roomType = { $in: typesArray };
     }
 
-    // 2. Filter by Price Ranges
+    // 3. Filter by Price Ranges
     if (priceRanges) {
       const rangesArray = priceRanges.split(",");
       const priceQueryConditions = [];
 
       rangesArray.forEach((range) => {
-        // Example ranges: "0 to 100", "500 to 1000", "1000 to 2000", "2000 and above"
         const cleanRange = range.replace(/\$/g, "").trim().toLowerCase();
         if (cleanRange.includes("and above")) {
           const minVal = parseInt(cleanRange.split(" ")[0]);
@@ -111,15 +110,13 @@ export const getRooms = async (req, res) => {
     }
 
     let sortOption = {};
-    // 3. Sorting Options
+    // 4. Sorting Options
     if (sort) {
-      // Examples: "Price: Low to High", "Price: High to Low"
       if (sort === "Price: Low to High") {
         sortOption.pricePerNight = 1;
       } else if (sort === "Price: High to Low") {
         sortOption.pricePerNight = -1;
       } else {
-        // Default sort by creation time
         sortOption.createdAt = -1;
       }
     } else {
@@ -141,11 +138,12 @@ export const getRooms = async (req, res) => {
 export const getRoomById = async (req, res) => {
   try {
     const { id } = req.params;
+
     const room = await Room.findById(id).populate({
       path: "hotel",
       populate: {
         path: "owner",
-        select: "-email", // protect email but send role/username/image
+        select: "-email",
       },
     });
 
@@ -204,3 +202,5 @@ export const toggleAvailability = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+

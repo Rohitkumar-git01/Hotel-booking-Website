@@ -37,8 +37,8 @@ export const createBooking = async (req, res) => {
       totalPrice,
       guests: Number(guests),
       paymentMethod: paymentMethod || "Pay At Hotel",
-      isPaid: paymentMethod === "Stripe", // simulate immediate payment for Stripe
-      status: "pending",
+      isPaid: paymentMethod && paymentMethod !== "Pay At Hotel",
+      status: paymentMethod && paymentMethod !== "Pay At Hotel" ? "confirmed" : "pending",
     });
 
     return res.status(201).json({
@@ -106,6 +106,10 @@ export const payBooking = async (req, res) => {
       return res.status(403).json({ success: false, message: "You are not authorized to pay for this booking" });
     }
 
+    const { paymentMethod } = req.body || {};
+    if (paymentMethod) {
+      booking.paymentMethod = paymentMethod;
+    }
     booking.isPaid = true;
     booking.status = "confirmed";
     await booking.save();
@@ -133,8 +137,6 @@ export const getOwnerDashboard = async (req, res) => {
     const totalBookings = bookings.length;
     const totalRevenue = bookings.reduce((sum, b) => (b.isPaid ? sum + b.totalPrice : sum), 0);
 
-    // Frontend fix: client uses `item.user.roomType` in Dashboard.jsx.
-    // Let's add roomType to user object or map the list safely.
     const mappedBookings = bookings.map((b) => {
       const bObj = b.toObject();
       if (bObj.user && bObj.room) {
@@ -154,3 +156,5 @@ export const getOwnerDashboard = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
