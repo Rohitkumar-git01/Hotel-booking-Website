@@ -5,7 +5,11 @@ import { useUser } from "@clerk/clerk-react";
 const AppContext = createContext();
 
 const AppContextProvider = ({ children }) => {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+  // Production backend URL - falls back to localhost for local dev
+  const backendUrl = import.meta.env.VITE_BACKEND_URL
+    || (typeof window !== "undefined" && window.location.hostname !== "localhost"
+      ? "https://hotel-booking-website-m3wn.vercel.app"
+      : "http://localhost:3000");
   const { user } = useUser();
 
   // Debug logging - visible in browser console
