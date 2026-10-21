@@ -8,6 +8,12 @@ const AppContextProvider = ({ children }) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
   const { user } = useUser();
 
+  // Debug logging - visible in browser console
+  console.log("[QuickStay] Backend URL:", backendUrl);
+  if (!import.meta.env.VITE_BACKEND_URL) {
+    console.warn("[QuickStay] VITE_BACKEND_URL not set! Falling back to localhost. Set this in Vercel Environment Variables.")
+  }
+
   const [rooms, setRooms] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
   const [myBookings, setMyBookings] = useState([]);
