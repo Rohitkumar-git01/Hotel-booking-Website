@@ -6,7 +6,10 @@ const userSchema = new mongoose.Schema(
     username: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     image: { type: String, default: "" },
-    role: { type: String, enum: ["user", "hotelOwner"], default: "user" },
+    // "user"       -> customer
+    // "hotelOwner" -> can list and manage hotels/rooms
+    // "admin"      -> can approve listings and manage every hotel
+    role: { type: String, enum: ["user", "hotelOwner", "admin"], default: "user" },
     recentSearchedCities: [{ type: String }],
   },
   { timestamps: true, _id: false }

@@ -1,9 +1,11 @@
 import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { assets, cities } from "../assets/assets";
 import { AppContext } from "../context/AppContext";
 
 const HotelReg = () => {
   const { registerHotel, setShowHotelReg } = useContext(AppContext);
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [address, setAddress] = useState("");
@@ -15,6 +17,7 @@ const HotelReg = () => {
     if (res.success) {
       alert(res.message || "Hotel registered successfully!");
       setShowHotelReg(false);
+      navigate("/owner/my-hotels");
     } else {
       alert(res.message || "Failed to register hotel");
     }

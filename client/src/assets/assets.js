@@ -72,6 +72,11 @@ export const assets = {
     uploadArea,
     totalBookingIcon,
     totalRevenueIcon,
+    // Local room fallback images
+    roomImg1,
+    roomImg2,
+    roomImg3,
+    roomImg4,
 }
 
 export const cities = [

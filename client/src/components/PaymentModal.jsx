@@ -1,6 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const PaymentModal = ({ isOpen, onClose, bookingDetails, onConfirmPayment }) => {
+  // Lock body scroll when modal is open (critical for iOS Safari)
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [isOpen]);
   const [selectedMethod, setSelectedMethod] = useState("PhonePe");
   const [upiId, setUpiId] = useState("");
   const [showQr, setShowQr] = useState(false);
@@ -37,7 +54,10 @@ const PaymentModal = ({ isOpen, onClose, bookingDetails, onConfirmPayment }) => 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto overscroll-contain"
+      style={{ WebkitOverflowScrolling: 'touch' }}
+    >
       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transition-all transform animate-fadeIn">
 
         {/* Header */}
@@ -206,6 +226,10 @@ const PaymentModal = ({ isOpen, onClose, bookingDetails, onConfirmPayment }) => 
                     <div className="relative">
                       <input
                         type="text"
+                        inputMode="email"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="none"
                         placeholder={
                           selectedMethod === "PhonePe"
                             ? "e.g. 9876543210@ybl"
@@ -254,6 +278,9 @@ const PaymentModal = ({ isOpen, onClose, bookingDetails, onConfirmPayment }) => 
                     <label className="text-xs font-semibold text-gray-700">Card Number</label>
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9 ]*"
+                      autoComplete="cc-number"
                       placeholder="4532 •••• •••• 8921"
                       maxLength={19}
                       value={cardData.number}
@@ -266,6 +293,8 @@ const PaymentModal = ({ isOpen, onClose, bookingDetails, onConfirmPayment }) => 
                       <label className="text-xs font-semibold text-gray-700">Expiry Date</label>
                       <input
                         type="text"
+                        inputMode="numeric"
+                        autoComplete="cc-exp"
                         placeholder="MM/YY"
                         maxLength={5}
                         value={cardData.expiry}
@@ -277,6 +306,8 @@ const PaymentModal = ({ isOpen, onClose, bookingDetails, onConfirmPayment }) => 
                       <label className="text-xs font-semibold text-gray-700">CVV</label>
                       <input
                         type="password"
+                        inputMode="numeric"
+                        autoComplete="cc-csc"
                         placeholder="123"
                         maxLength={4}
                         value={cardData.cvv}

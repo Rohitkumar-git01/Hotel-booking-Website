@@ -5,6 +5,14 @@ import StarRating from "../components/StarRating";
 import { AppContext } from "../context/AppContext";
 import PaymentModal from "../components/PaymentModal";
 
+// Local fallback images from assets
+const fallbackImages = [
+  assets.roomImg1,
+  assets.roomImg2,
+  assets.roomImg3,
+  assets.roomImg4,
+];
+
 const RoomDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -13,24 +21,39 @@ const RoomDetails = () => {
   const [room, setRoom] = useState(null);
   const [mainImage, setMainImage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Form states
   const [checkInDate, setCheckInDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
   const [guests, setGuests] = useState(1);
 
+  const today = new Date().toISOString().split("T")[0];
+
   useEffect(() => {
     const loadRoom = async () => {
       setLoading(true);
-      const data = await fetchRoomById(id);
-      if (data) {
-        setRoom(data);
-        setMainImage(data.images[0]);
+      setError(null);
+      try {
+        const data = await fetchRoomById(id);
+        if (data) {
+          setRoom(data);
+          // Use first real image OR first local fallback
+          setMainImage(
+            data.images && data.images.length > 0 && data.images[0]
+              ? data.images[0]
+              : fallbackImages[0]
+          );
+        } else {
+          setError("Room not found. It may have been removed or the link is incorrect.");
+        }
+      } catch (err) {
+        setError(err.message || "Failed to load room details. Please try again.");
       }
       setLoading(false);
     };
     loadRoom();
-  }, [id]);
+  }, [id, fetchRoomById]);
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
@@ -81,8 +104,14 @@ const RoomDetails = () => {
 
   if (!room) {
     return (
-      <div className="py-35 text-center text-lg text-red-500">
-        Room not found.
+      <div className="py-35 text-center flex flex-col items-center gap-4">
+        <p className="text-lg text-red-500">{error || "Room not found."}</p>
+        <button
+          onClick={() => navigate(-1)}
+          className="px-6 py-2 rounded bg-primary text-white text-sm hover:bg-primary-dull transition-all"
+        >
+          ← Go Back
+        </button>
       </div>
     );
   }
@@ -116,26 +145,40 @@ const RoomDetails = () => {
       <div className="flex flex-col lg:flex-row mt-6 gap-6">
         <div className="lg:w-1/2 w-full">
           <img
-            src={mainImage || assets.uploadArea}
+            src={mainImage || fallbackImages[0]}
             alt="Room Image"
             className="w-full rounded-xl shadow-lg object-cover max-h-96"
+            onError={(e) => {
+              const fb = fallbackImages[0];
+              if (!e.target.dataset.fallbackApplied && e.target.src !== new URL(fb, window.location.href).href) {
+                e.target.dataset.fallbackApplied = "true";
+                e.target.src = fb;
+              }
+            }}
           />
         </div>
         <div className="grid grid-cols-2 gap-4 lg:w-1/2 w-full">
-          {room.images &&
-            room.images.length > 0 &&
-            room.images.map((image, index) => (
-              <img
-                onClick={() => setMainImage(image)}
-                key={index}
-                src={image}
-                alt="Room Image"
-                loading="lazy"
-                decoding="async"
-                className={`w-full rounded-xl shadow-lg object-cover cursor-pointer max-h-44 ${mainImage === image && "outline-3 outline-orange-500"
-                  }`}
-              />
-            ))}
+          {/* Show real images if available, otherwise show all 4 local fallback images */}
+          {(room.images && room.images.length > 0 ? room.images : fallbackImages).map((image, index) => (
+            <img
+              onClick={() => setMainImage(image)}
+              key={index}
+              src={image}
+              alt="Room Image"
+              loading="lazy"
+              decoding="async"
+              className={`w-full rounded-xl shadow-lg object-cover cursor-pointer max-h-44 ${
+                mainImage === image ? "outline-3 outline-orange-500" : ""
+              }`}
+              onError={(e) => {
+                const fb = fallbackImages[index % fallbackImages.length];
+                if (!e.target.dataset.fallbackApplied && e.target.src !== new URL(fb, window.location.href).href) {
+                  e.target.dataset.fallbackApplied = "true";
+                  e.target.src = fb;
+                }
+              }}
+            />
+          ))}
         </div>
       </div>
 
@@ -177,6 +220,7 @@ const RoomDetails = () => {
               type="date"
               id="checkInDate"
               value={checkInDate}
+              min={today}
               onChange={(e) => setCheckInDate(e.target.value)}
               className="w-full rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none"
               required
@@ -191,6 +235,7 @@ const RoomDetails = () => {
               type="date"
               id="checkOutDate"
               value={checkOutDate}
+              min={checkInDate || today}
               onChange={(e) => setCheckOutDate(e.target.value)}
               className="w-full rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none"
               required
@@ -205,6 +250,9 @@ const RoomDetails = () => {
               type="number"
               id="guests"
               min="1"
+              max="10"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={guests}
               onChange={(e) => setGuests(e.target.value)}
               className="max-w-20 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none"

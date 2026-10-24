@@ -4,7 +4,6 @@ import Title from "../components/Title";
 import spaImg from "../assets/spaExperience.png";
 import diningImg from "../assets/fineDining.png";
 import aboutLobbyImg from "../assets/aboutLobby.png";
-import { assets } from "../assets/assets";
 
 const experiences = [
   {

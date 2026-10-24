@@ -16,7 +16,8 @@ const bookingSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["Stripe", "Pay At Hotel"],
+      // Must stay in sync with the methods offered by client/src/components/PaymentModal.jsx
+      enum: ["Stripe", "Card", "Net Banking", "PhonePe", "Google Pay", "Paytm", "Pay At Hotel"],
       default: "Pay At Hotel",
     },
     isPaid: { type: Boolean, default: false },

@@ -3,7 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- iOS-compatible viewport: viewport-fit=cover handles notch/Dynamic Island safe areas -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+
+    <!-- iOS Web App & UI Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="QuickStay" />
+
+    <!-- Browser theme color (matches primary brand color) -->
+    <meta name="theme-color" content="#2563EB" />
+
+    <!-- Prevent iOS from auto-converting phone numbers / emails into links -->
+    <meta name="format-detection" content="telephone=no, email=no, address=no" />
+
+    <!-- Apple Touch Icon (shown when added to Home Screen) -->
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
     <title>Hotel-booking</title>
   </head>
   <body>

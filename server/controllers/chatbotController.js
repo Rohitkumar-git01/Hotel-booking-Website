@@ -41,8 +41,10 @@ const getGeminiResponse = async (userPrompt, systemContext) => {
 
 export const handleChat = async (req, res) => {
   try {
-    const { message, history } = req.body;
-    const userId = req.headers.userid || req.headers.clerkid;
+    const { message } = req.body;
+    // Set by optionalAuth after verifying the Clerk session token. Never read
+    // an identity from a client-supplied header: that leaked any user's bookings.
+    const userId = req.userId;
 
     if (!message || typeof message !== "string") {
       return res.status(400).json({ success: false, message: "Message string is required" });

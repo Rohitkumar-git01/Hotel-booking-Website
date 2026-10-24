@@ -6,7 +6,10 @@
   "type": "module",
   "scripts": {
     "server": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "migrate": "node scripts/migrate.js",
+    "test": "node --test tests/*.test.js",
+    "check": "node --check server.js && node --check controllers/hotelController.js && node --check controllers/roomController.js && node --check controllers/bookingController.js && node --check models/Hotel.js && node --check models/Room.js && node --check models/BookingSlot.js && node --check scripts/migrate.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +19,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jose": "^6.2.13",
     "mongoose": "^9.7.4",
     "multer": "^2.2.0",
     "svix": "^1.97.0"

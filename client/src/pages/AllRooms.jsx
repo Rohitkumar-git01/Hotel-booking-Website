@@ -1,16 +1,25 @@
 import React, { useState, useContext, useEffect } from "react";
 import { assets, facilityIcons } from "../assets/assets";
+
+// Local fallback room images (cycle through 4)
+const fallbackImages = [
+  assets.roomImg1,
+  assets.roomImg2,
+  assets.roomImg3,
+  assets.roomImg4,
+];
 import { useNavigate, useSearchParams } from "react-router-dom";
 import StarRating from "../components/StarRating";
 import { AppContext } from "../context/AppContext";
 
 const Checkbox = ({ label, value, selected = false, onChange = () => { } }) => {
   return (
-    <label className="flex gap-3 items-center cursor-pointer mt-2 text-sm">
+    <label className="flex gap-3 items-center cursor-pointer mt-1 text-sm min-h-[44px]">
       <input
         type="checkbox"
         checked={selected}
         onChange={(e) => onChange(e.target.checked, value || label)}
+        style={{ width: 18, height: 18, minWidth: 18 }}
       />
       <span className="font-light select-none">{label}</span>
     </label>
@@ -19,12 +28,13 @@ const Checkbox = ({ label, value, selected = false, onChange = () => { } }) => {
 
 const RadioButton = ({ label, selected = false, onChange = () => { } }) => {
   return (
-    <label className="flex gap-3 items-center cursor-pointer mt-2 text-sm">
+    <label className="flex gap-3 items-center cursor-pointer mt-1 text-sm min-h-[44px]">
       <input
         type="radio"
         name="sortOption"
         checked={selected}
         onChange={() => onChange(label)}
+        style={{ width: 18, height: 18, minWidth: 18 }}
       />
       <span className="font-light select-none">{label}</span>
     </label>
@@ -36,7 +46,7 @@ const AllRooms = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const city = searchParams.get("city") || "";
   const [openFilters, setOpenFilters] = useState(false);
-  const { rooms, fetchRooms, loading } = useContext(AppContext);
+  const { rooms, roomsError, fetchRooms, loading } = useContext(AppContext);
 
   const roomTypes = [
     "Single Bed",
@@ -92,7 +102,7 @@ const AllRooms = () => {
       sort: selectedSort,
       city: city,
     });
-  }, [selectedRoomTypes, selectedPriceRanges, selectedSort, city]);
+  }, [selectedRoomTypes, selectedPriceRanges, selectedSort, city, fetchRooms]);
 
   return (
     <div className="flex flex-col-reverse lg:flex-row items-start justify-between pt-28 md:pt-35 px-4 md:px-16 lg:px-24 xl:px-32">
@@ -113,6 +123,22 @@ const AllRooms = () => {
 
         {loading ? (
           <div className="py-20 text-center text-lg text-gray-500">Loading rooms...</div>
+        ) : roomsError ? (
+          <div className="py-20 text-center flex flex-col items-center gap-3">
+            <p className="text-lg text-red-500">Could not load rooms</p>
+            <p className="text-sm text-gray-500 max-w-md">{roomsError}</p>
+            <button
+              onClick={() => fetchRooms({
+                roomTypes: selectedRoomTypes.join(","),
+                priceRanges: selectedPriceRanges.join(","),
+                sort: selectedSort,
+                city: city,
+              })}
+              className="px-5 py-2 rounded bg-primary text-white text-sm hover:bg-primary-dull transition-all cursor-pointer"
+            >
+              Retry
+            </button>
+          </div>
         ) : rooms.length === 0 ? (
           <div className="py-20 text-center text-lg text-gray-500">No rooms match your filter.</div>
         ) : (
@@ -126,11 +152,27 @@ const AllRooms = () => {
                   navigate(`/rooms/${room._id}`);
                   window.scrollTo(0, 0);
                 }}
-                src={room.images[0] || assets.uploadArea}
+                src={
+                  room.images && room.images.length > 0 && room.images[0]
+                    ? room.images[0]
+                    : fallbackImages[rooms.indexOf(room) % fallbackImages.length]
+                }
                 alt="hotel-img"
                 title="View Room Details"
                 className="max-h-65 md:w-1/2 rounded-xl shadow-lg object-cover cursor-pointer"
+                onError={(e) => {
+                  // e.target.src is always absolute while the fallback is a
+                  // relative path, so comparing them directly never matches and
+                  // would re-trigger onError forever. Compare the path instead
+                  // and bail out if the fallback itself is what failed.
+                  const fallback = fallbackImages[rooms.indexOf(room) % fallbackImages.length];
+                  if (!e.target.dataset.fallbackApplied && e.target.src !== new URL(fallback, window.location.href).href) {
+                    e.target.dataset.fallbackApplied = "true";
+                    e.target.src = fallback;
+                  }
+                }}
               />
+
               <div className="md:w-1/2 flex flex-col gap-2">
                 <p className="text-gray-500">{room.hotel?.city || "Unknown City"}</p>
                 <p

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { AppContext } from "../context/AppContext";
-import { useUser, useClerk } from "@clerk/clerk-react";
+import { useUser, useClerk, useAuth } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 
 const AIChatbot = () => {
   const { backendUrl, setShowHotelReg } = useContext(AppContext);
   const { user } = useUser();
+  const { getToken } = useAuth();
   const clerk = useClerk();
   const navigate = useNavigate();
 
@@ -57,8 +58,15 @@ const AIChatbot = () => {
 
     try {
       const headers = { "Content-Type": "application/json" };
+      // Verify identity with a Clerk session token; the server ignores plain
+      // user id headers to prevent impersonation.
       if (user?.id) {
-        headers["userid"] = user.id;
+        try {
+          const token = await getToken();
+          if (token) headers.Authorization = `Bearer ${token}`;
+        } catch (error) {
+          console.error("[QuickStay] Could not get Clerk session token:", error);
+        }
       }
 
       const res = await fetch(`${backendUrl}/api/chatbot/chat`, {
@@ -148,10 +156,15 @@ const AIChatbot = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <div
+      className="fixed right-4 sm:right-6 z-50 flex flex-col items-end"
+      style={{
+        bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))',
+      }}
+    >
       {/* Floating Chat Box Window */}
       {isOpen && (
-        <div className="mb-4 w-[360px] sm:w-[400px] h-[540px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 transform scale-100 opacity-100">
+        <div className="mb-4 w-[calc(100vw-2rem)] sm:w-[360px] md:w-[400px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 transform scale-100 opacity-100" style={{ height: 'min(540px, 70dvh)' }}>
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-4 py-3.5 text-white flex items-center justify-between shadow-md">
             <div className="flex items-center gap-3">
@@ -185,7 +198,7 @@ const AIChatbot = () => {
           </div>
 
           {/* Messages Container */}
-          <div className="flex-1 p-4 overflow-y-auto bg-slate-50/50 space-y-3.5">
+          <div className="flex-1 p-4 overflow-y-auto bg-slate-50/50 space-y-3.5" style={{ WebkitOverflowScrolling: 'touch' }}>
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -277,6 +290,10 @@ const AIChatbot = () => {
           >
             <input
               type="text"
+              inputMode="text"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="sentences"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Ask about bookings, hotels, timing..."

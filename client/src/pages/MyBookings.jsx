@@ -10,7 +10,7 @@ const MyBookings = () => {
 
   useEffect(() => {
     fetchUserBookings();
-  }, []);
+  }, [fetchUserBookings]);
 
   const handleConfirmPayment = async (paymentMethod) => {
     if (!selectedBookingForPayment) return;

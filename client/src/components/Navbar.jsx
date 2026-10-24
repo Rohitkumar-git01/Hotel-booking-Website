@@ -13,7 +13,8 @@ const BookIcon = ()=>(
 const Navbar = () => {
     const navLinks = [
         { name: 'Home', path: '/' },
-        { name: 'Hotels', path: '/rooms' },
+        { name: 'Hotels', path: '/hotels' },
+        { name: 'Rooms', path: '/rooms' },
         { name: 'Experience', path: '/experience' },
         { name: 'About', path: '/about' },
     ];
@@ -34,11 +35,17 @@ const Navbar = () => {
             openSignIn();
             return;
         }
+        if (userProfile?.role === 'admin') {
+            navigate('/admin/hotels');
+            return;
+        }
         if (userProfile?.role === 'hotelOwner') {
             navigate('/owner');
-        } else {
-            setShowHotelReg(true);
+            return;
         }
+        // A customer can still register their first hotel - this promotes the
+        // account to a hotel owner.
+        setShowHotelReg(true);
     };
 
     useEffect(() => {
@@ -54,7 +61,7 @@ const Navbar = () => {
     }, [location.pathname]);
 
     return (
-            <nav className={`fixed top-0 left-0 w-full flex items-center justify-between px-4 md:px-16 lg:px-24 xl:px-32 transition-all duration-500 z-50 ${isScrolled ? "bg-white/80 shadow-md text-gray-700 backdrop-blur-lg py-3 md:py-4" : "py-4 md:py-6"}`}>
+            <nav style={isScrolled ? { WebkitBackdropFilter: 'blur(12px)' } : {}} className={`fixed top-0 left-0 w-full flex items-center justify-between px-4 md:px-16 lg:px-24 xl:px-32 transition-all duration-500 z-50 ${isScrolled ? "bg-white/80 shadow-md text-gray-700 backdrop-blur-lg py-3 md:py-4" : "py-4 md:py-6"}`}>
 
                 {/* Logo */}
                 <Link to='/'>
