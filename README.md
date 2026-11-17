@@ -2,9 +2,10 @@
 
 A Full Stack Hotel Booking Application built using the MERN Stack.
 
-🚀 Live Demo
+## 🚀 Live Demo
 
-Visit Live Website
+[Visit Live Website](https://hotel-booking-website-xvrf.vercel.app)
+
 
 🛠️ Tech Stack
 
